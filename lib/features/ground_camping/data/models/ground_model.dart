@@ -1,0 +1,277 @@
+import 'package:flutter/material.dart';
+
+class GroundModel {
+  final String id;
+  final String name;
+  final String capacity;
+  final String imageUrl;
+  final String description;
+  final String areaSize;
+  final String terrainType;
+  final String facility1;
+  final String facility2;
+  final String highlightBadgeText;
+  final Color highlightBadgeColor;
+
+  // Optional icon customizers for rich visual presentation
+  final IconData? areaIcon;
+  final IconData? terrainIcon;
+  final IconData? facility1Icon;
+  final IconData? facility2Icon;
+
+  const GroundModel({
+    required this.id,
+    required this.name,
+    required this.capacity,
+    required this.imageUrl,
+    required this.description,
+    required this.areaSize,
+    required this.terrainType,
+    required this.facility1,
+    required this.facility2,
+    required this.highlightBadgeText,
+    required this.highlightBadgeColor,
+    this.areaIcon,
+    this.terrainIcon,
+    this.facility1Icon,
+    this.facility2Icon,
+  });
+}
+
+/// Mock dataset covering Ground A through Ground M (13 zones)
+final List<GroundModel> dummyGrounds = [
+  const GroundModel(
+    id: 'A',
+    name: 'GROUND A',
+    capacity: 'Kapasitas: ±35 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Lokasi tepat di samping pos registrasi & area parkir utama. Kontur tanah sangat datar beralaskan rumput lembut.',
+    areaSize: 'Luas: ±850 m²',
+    terrainType: 'Tanah Rumput Datar',
+    facility1: 'Dekat Titik Listrik',
+    facility2: 'Toilet ±30 meter',
+    highlightBadgeText: 'Akses Ramah Anak-anak',
+    highlightBadgeColor: Color(0xFF10B981),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.eco_rounded,
+    facility1Icon: Icons.bolt_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'B',
+    name: 'GROUND B',
+    capacity: 'Kapasitas: ±20 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Memiliki undakan terasering bertingkat dengan pemandangan terbuka menghadap lembah hutan pinus.',
+    areaSize: 'Luas: ±520 m²',
+    terrainType: 'Kontur Terasering',
+    facility1: 'Dekat Sumber Air',
+    facility2: 'Toilet ±35 meter',
+    highlightBadgeText: 'View Panorama',
+    highlightBadgeColor: Color(0xFF059669),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.terrain_rounded,
+    facility1Icon: Icons.water_drop_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'C',
+    name: 'GROUND C',
+    capacity: 'Kapasitas: ±18 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1496545672447-f699b503d270?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Bersebelahan langsung dengan aliran air sungai Bedengan yang jernih dan dangkal. Udara sangat sejuk dan segar.',
+    areaSize: 'Luas: ±450 m²',
+    terrainType: 'Bibir Sungai Berbatu',
+    facility1: 'Dekat Warung Kopi',
+    facility2: 'Toilet ±45 meter',
+    highlightBadgeText: 'Riverside Camp',
+    highlightBadgeColor: Color(0xFF2563EB),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.water_rounded,
+    facility1Icon: Icons.coffee_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'D',
+    name: 'GROUND D',
+    capacity: 'Kapasitas: ±40 Tenda (Sangat Luas)',
+    imageUrl: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Area terhampar luas di bagian atas bukit, memiliki lapangan api unggun bersama, favorit untuk gathering kantor atau pramuka.',
+    areaSize: 'Luas: ±1.100 m²',
+    terrainType: 'Spot Api Unggun',
+    facility1: 'Rombongan >80 Org',
+    facility2: 'Toilet Khusus Blok D',
+    highlightBadgeText: 'Grup & Gathering',
+    highlightBadgeColor: Color(0xFFD97706),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.local_fire_department_rounded,
+    facility1Icon: Icons.groups_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'E',
+    name: 'GROUND E',
+    capacity: 'Kapasitas: ±22 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1537905569824-f89f14cceb68?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Sangat strategis bagi camper yang ingin kemudahan membeli makanan hangat, charger ponsel, dan dekat gazebo bersantai.',
+    areaSize: 'Luas: ±580 m²',
+    terrainType: 'Gazebo Istirahat',
+    facility1: 'Warung ±15 meter',
+    facility2: 'Toilet Tengah',
+    highlightBadgeText: 'Fasilitas Lengkap',
+    highlightBadgeColor: Color(0xFF0D9488),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.roofing_rounded,
+    facility1Icon: Icons.storefront_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'F',
+    name: 'GROUND F',
+    capacity: 'Kapasitas: ±25 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Dikelilingi tegakan pohon pinus tua yang tinggi dan rapat, menahan hembusan angin kencang serta sangat sejuk di siang hari.',
+    areaSize: 'Luas: ±680 m²',
+    terrainType: 'Pohon Pinus Rapat',
+    facility1: 'Cocok Pasang Hammock',
+    facility2: 'Toilet ±40 meter',
+    highlightBadgeText: 'Spot Syahdu',
+    highlightBadgeColor: Color(0xFF059669),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.park_rounded,
+    facility1Icon: Icons.beach_access_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'G',
+    name: 'GROUND G',
+    capacity: 'Kapasitas: ±15 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1487730116645-74489c95b41b?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Suasana tenang di lereng perbukitan pinus dengan gemericik sungai samar di kejauhan, cocok untuk self-healing.',
+    areaSize: 'Luas: ±420 m²',
+    terrainType: 'Tanah Padat Datar',
+    facility1: 'Akses Jalan Setapak',
+    facility2: 'Toilet ±50 meter',
+    highlightBadgeText: 'Suasana Tenang & Damai',
+    highlightBadgeColor: Color(0xFF4F46E5),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.landscape_rounded,
+    facility1Icon: Icons.directions_walk_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'H',
+    name: 'GROUND H',
+    capacity: 'Kapasitas: ±28 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1517824806704-9040b037703b?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Kombinasi area teduh hutan pinus dan lapangan terbuka untuk bersantai bersama kerabat dan keluarga besar.',
+    areaSize: 'Luas: ±750 m²',
+    terrainType: 'Pinus & Rumput Alami',
+    facility1: 'Dekat Kran Air Bersih',
+    facility2: 'Toilet ±35 meter',
+    highlightBadgeText: 'Favorit Keluarga',
+    highlightBadgeColor: Color(0xFF16A34A),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.park_rounded,
+    facility1Icon: Icons.water_drop_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'I',
+    name: 'GROUND I',
+    capacity: 'Kapasitas: ±16 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Lokasi privat di ujung jalan setapak, berhadapan langsung dengan panorama bukit dan vegetasi hijau alami.',
+    areaSize: 'Luas: ±460 m²',
+    terrainType: 'Area Semi-Privat',
+    facility1: 'Pemandangan Bukit',
+    facility2: 'Toilet ±60 meter',
+    highlightBadgeText: 'Solo & Duo Camper',
+    highlightBadgeColor: Color(0xFF7C3AED),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.filter_hdr_rounded,
+    facility1Icon: Icons.visibility_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'J',
+    name: 'GROUND J',
+    capacity: 'Kapasitas: ±20 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Menghadirkan pemandangan langit malam terbaik tanpa terhalang kanopi pohon, surga bagi pencinta stargazing.',
+    areaSize: 'Luas: ±540 m²',
+    terrainType: 'Area Terbuka Langit',
+    facility1: 'Spot Api Unggun',
+    facility2: 'Toilet ±45 meter',
+    highlightBadgeText: 'Sky Watchers Pick',
+    highlightBadgeColor: Color(0xFF0284C7),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.wb_twilight_rounded,
+    facility1Icon: Icons.local_fire_department_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'K',
+    name: 'GROUND K',
+    capacity: 'Kapasitas: ±18 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Diapit tebing pinus asri yang menyejukkan dengan semilir angin sepoi-sepoi sepanjang hari.',
+    areaSize: 'Luas: ±490 m²',
+    terrainType: 'Tanah Rata Padat',
+    facility1: 'Dekat Pos Jaga 2',
+    facility2: 'Toilet ±40 meter',
+    highlightBadgeText: 'Teduh Seharian',
+    highlightBadgeColor: Color(0xFF059669),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.eco_rounded,
+    facility1Icon: Icons.security_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'L',
+    name: 'GROUND L',
+    capacity: 'Kapasitas: ±24 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1445307806294-bff7f67ff225?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Zona camping atas yang menawarkan ketenangan ekstra dengan jalan akses setapak berkerikil rapi.',
+    areaSize: 'Luas: ±620 m²',
+    terrainType: 'Kontur Berundak Halus',
+    facility1: 'Titik Listrik Tersedia',
+    facility2: 'Toilet Blok Atas',
+    highlightBadgeText: 'Kenyamanan Ekstra',
+    highlightBadgeColor: Color(0xFF475569),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.terrain_rounded,
+    facility1Icon: Icons.power_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+  const GroundModel(
+    id: 'M',
+    name: 'GROUND M',
+    capacity: 'Kapasitas: ±30 Tenda',
+    imageUrl: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=800&auto=format&fit=crop',
+    description:
+        'Zona puncak paling hulu dengan view hutan pinus terluas dan udara terdingin di kawasan Bedengan.',
+    areaSize: 'Luas: ±820 m²',
+    terrainType: 'Puncak Dataran Tinggi',
+    facility1: 'Udara Sangat Sejuk',
+    facility2: 'Toilet Blok Hulu',
+    highlightBadgeText: 'Puncak Hulu Eksklusif',
+    highlightBadgeColor: Color(0xFFB45309),
+    areaIcon: Icons.square_foot_rounded,
+    terrainIcon: Icons.ac_unit_rounded,
+    facility1Icon: Icons.air_rounded,
+    facility2Icon: Icons.wc_rounded,
+  ),
+];
