@@ -4,6 +4,7 @@ class AppAssets {
   // Logos & Icons
   static const String appLogo = '$baseImagePath/app_logo.png';
   static const String mapPreview = '$baseImagePath/bedengan_map.png';
+  static const String evacuationMap = '$baseImagePath/evacuation_map.png';
   
   // Carousel Images
   static const String riverSpot = '$baseImagePath/river_spot.jpg';

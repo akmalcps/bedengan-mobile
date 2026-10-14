@@ -1,121 +1,304 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_assets.dart';
+import '../../../../shared_widgets/floating_navbar.dart';
+import '../../data/models/rule_model.dart';
+import '../widgets/warning_card.dart';
+import '../widgets/rule_item_card.dart';
+import '../widgets/evacuation_map_card.dart';
+import '../widgets/contact_info_cards.dart';
 
 class PanduanScreen extends StatelessWidget {
   const PanduanScreen({super.key});
-
-  final List<Map<String, dynamic>> _guides = const [
-    {
-      'title': 'Etika Menjaga Kebersihan (Leave No Trace)',
-      'content': 'Bawa kantong sampah sendiri dan bawa kembali semua sampah plastik saat checkout. Jangan membuang puntung rokok atau sisa makanan ke aliran sungai.',
-      'icon': Icons.delete_outline_rounded,
-    },
-    {
-      'title': 'Tata Tertib Malam (Quiet Hours)',
-      'content': 'Waktu tenang dimulai pukul 22.00 WIB. Dilarang menyalakan sound system berkekuatan besar demi kenyamanan seluruh pengunjung yang sedang beristirahat.',
-      'icon': Icons.nightlight_round,
-    },
-    {
-      'title': 'Keamanan Api Unggun & Masak',
-      'content': 'Nyalakan api unggun hanya di tempat yang disediakan atau gunakan wadah/fire pit. Pastikan bara api padam sempurna sebelum tidur dan sebelum meninggalkan tenda.',
-      'icon': Icons.local_fire_department_rounded,
-    },
-    {
-      'title': 'Keselamatan di Sekitar Aliran Sungai',
-      'content': 'Anak-anak harus selalu dalam pengawasan orang dewasa saat bermain di tepian sungai. Jika terjadi hujan lebat di hulu, segera jauhi bantaran sungai.',
-      'icon': Icons.water_rounded,
-    },
-    {
-      'title': 'Kelestarian Hutan Pinus',
-      'content': 'Dilarang keras memaku pohon pinus, menggores batang pohon, atau merusak tanaman di sekitar area perkemahan.',
-      'icon': Icons.park_rounded,
-    },
-    {
-      'title': 'Pos Keamanan & Bantuan Darurat',
-      'content': 'Petugas patroli berjaga 24 jam di Pos Registrasi 1. Jika membutuhkan bantuan darurat atau evakuasi medis ringan, segera hubungi petugas jaga.',
-      'icon': Icons.health_and_safety_rounded,
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          'Panduan & Tata Tertib',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.forest,
+      body: Stack(
+        children: [
+          // ── Layer 1: Scrollable Content ──
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section 1: Custom App Bar
+                _buildCustomAppBar(context),
+
+                // Section 2: Header
+                _buildHeader(),
+
+                const SizedBox(height: 20),
+
+                // Section 3: Warning Card
+                const WarningCard(),
+
+                const SizedBox(height: 28),
+
+                // Section 4: Section Title — Tata Tertib Pengunjung
+                _buildSectionTitle(),
+
+                const SizedBox(height: 12),
+
+                // Section 5: Rules List
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: dummyRules.length,
+                  itemBuilder: (context, index) {
+                    return RuleItemCard(rule: dummyRules[index]);
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                // Section 6: Evacuation Map
+                const EvacuationMapCard(),
+
+                const SizedBox(height: 20),
+
+                // Section 7: Contact Info Cards
+                const ContactInfoCards(),
+
+                const SizedBox(height: 32),
+
+                // Section 8: Footer
+                _buildFooter(),
+
+                // Section 9: Bottom Padding for Floating Navbar
+                const SizedBox(height: 120),
+              ],
+            ),
           ),
+
+          // ── Layer 2: Floating Navbar ──
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: FloatingNavbar(
+              currentIndex: -1, // No tab active on sub-screen
+              onItemSelected: (index) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/dashboard',
+                  (route) => false,
+                  arguments: index,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────
+  // Custom App Bar
+  // ───────────────────────────────────────────────────────
+  Widget _buildCustomAppBar(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
+        child: Row(
+          children: [
+            // Back Button
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 18,
+                color: AppColors.forest,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: AppColors.sageBorder,
+                    width: 1,
+                  ),
+                ),
+                padding: const EdgeInsets.all(10),
+              ),
+            ),
+            const Spacer(),
+            // Logo
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  AppAssets.appLogo,
+                  height: 28,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.terrain_rounded,
+                      size: 28,
+                      color: AppColors.primary,
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'BEDENGAN',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.forest,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 3),
+                const Text(
+                  'XPLORE',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      body: SafeArea(
-        child: ListView.separated(
-          padding: const EdgeInsets.all(20),
-          itemCount: _guides.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final guide = _guides[index];
-            return Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColors.cardShadow,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  )
-                ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────
+  // Header Section
+  // ───────────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Chip / Tag
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.sageLight,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: const Text(
+              'Informasi & Keselamatan Kawasan',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.forest,
               ),
-              child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      guide['icon'] as IconData,
-                      color: AppColors.forest,
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(
-                    guide['title'] as String,
-                    style: const TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.forest,
-                    ),
-                  ),
-                  iconColor: AppColors.forest,
-                  collapsedIconColor: AppColors.forestMuted,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
-                      child: Text(
-                        guide['content'] as String,
-                        style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 13,
-                          height: 1.5,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Title
+          const Text(
+            'Panduan & Tata Tertib\nPengunjung',
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.forest,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Description
+          Text(
+            'Demi keamanan, kenyamanan bersama, dan kelestarian ekosistem alam bumi perkemahan Bedengan Malang.',
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textSecondary,
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────
+  // Section Title: Tata Tertib + Badge
+  // ───────────────────────────────────────────────────────
+  Widget _buildSectionTitle() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Tata Tertib Pengunjung',
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.forest,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCEAD7),
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: const Text(
+              'Wajib Dipatuhi',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.forest,
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────
+  // Footer: SALAM LESTARI
+  // ───────────────────────────────────────────────────────
+  Widget _buildFooter() {
+    return Center(
+      child: Column(
+        children: [
+          const Text(
+            'SALAM LESTARI',
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.forest,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              '"Lestari Alamku, Nyaman Berkemah di Bedengan Xplore."',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                fontStyle: FontStyle.italic,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
