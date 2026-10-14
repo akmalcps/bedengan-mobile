@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../data/models/katalog_models.dart';
+import '../widgets/katalog_header.dart';
+import '../widgets/warung_item_card.dart';
+import '../widgets/rental_item_card.dart';
+import '../widgets/photographer_item_card.dart';
+import '../widgets/register_vendor_card.dart';
 
 class KatalogScreen extends StatefulWidget {
   const KatalogScreen({super.key});
@@ -9,219 +15,247 @@ class KatalogScreen extends StatefulWidget {
 }
 
 class _KatalogScreenState extends State<KatalogScreen> {
-  int _selectedCategoryIndex = 0;
-  final List<String> _categories = ['Semua', 'Warung & Kuliner', 'Sewa Alat', 'Fotografer'];
+  int _selectedFilterIndex = 0;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
-  final List<Map<String, dynamic>> _items = [
-    {
-      'title': 'Warung Barokah Bu Siti',
-      'category': 'Warung & Kuliner',
-      'desc': 'Menyediakan nasi pecel, gorengan hangat, mie rebus, dan aneka kopi.',
-      'tag': 'Buka 07.00 - 22.00',
-      'icon': Icons.restaurant_rounded,
-    },
-    {
-      'title': 'Rental Tenda Bedengan Outgear',
-      'category': 'Sewa Alat',
-      'desc': 'Sewa tenda dome (kapasitas 2-6), matras aluminium, sleeping bag, nesting.',
-      'tag': 'Tersedia Lengkap',
-      'icon': Icons.cabin_rounded,
-    },
-    {
-      'title': 'Warung Kopi Pinus 99',
-      'category': 'Warung & Kuliner',
-      'desc': 'Kopi robusta Dampit, teh jahe hangat, serta snack tepi sungai.',
-      'tag': 'Tepi Sungai',
-      'icon': Icons.coffee_rounded,
-    },
-    {
-      'title': 'Malang Nature Photography',
-      'category': 'Fotografer',
-      'desc': 'Jasa dokumentasi foto camping keluarga, prewedding alam, & drone video.',
-      'tag': 'Portofolio Alam',
-      'icon': Icons.camera_alt_rounded,
-    },
-  ];
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _selectedCategoryIndex == 0
-        ? _items
-        : _items.where((e) => e['category'] == _categories[_selectedCategoryIndex]).toList();
+    // Filter lists according to search query
+    final query = _searchQuery.toLowerCase().trim();
+
+    final filteredWarungs = dummyWarungs.where((w) {
+      if (query.isEmpty) return true;
+      return w.name.toLowerCase().contains(query) ||
+          w.description.toLowerCase().contains(query) ||
+          w.menus.any((m) => m.toLowerCase().contains(query));
+    }).toList();
+
+    final filteredRentals = dummyRentals.where((r) {
+      if (query.isEmpty) return true;
+      return r.name.toLowerCase().contains(query) ||
+          r.description.toLowerCase().contains(query) ||
+          r.items.any((i) =>
+              (i['name'] ?? '').toLowerCase().contains(query) ||
+              (i['price'] ?? '').toLowerCase().contains(query));
+    }).toList();
+
+    final filteredPhotographers = dummyPhotographers.where((p) {
+      if (query.isEmpty) return true;
+      return p.username.toLowerCase().contains(query) ||
+          p.title.toLowerCase().contains(query) ||
+          p.description.toLowerCase().contains(query);
+    }).toList();
+
+    // Determine visibility based on selected filter tab
+    // 0: Semua, 1: Warung & Kuliner, 2: Fotografer Wedding, 3: Sewa Alat Camping
+    final showWarung =
+        (_selectedFilterIndex == 0 || _selectedFilterIndex == 1) &&
+            filteredWarungs.isNotEmpty;
+    final showRental =
+        (_selectedFilterIndex == 0 || _selectedFilterIndex == 3) &&
+            filteredRentals.isNotEmpty;
+    final showPhotographer =
+        (_selectedFilterIndex == 0 || _selectedFilterIndex == 2) &&
+            filteredPhotographers.isNotEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          'Katalog Kawasan',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.forest,
-          ),
-        ),
-      ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
-          children: [
-            // Search input
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(100),
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColors.cardShadow,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  )
-                ],
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Cari warung, alat camping, fotografer...',
-                  hintStyle: const TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    color: AppColors.textLight,
+        bottom: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section 1: Header (Brand Bar, Title, Subtitle, Filter Chips, Search Input)
+                KatalogHeader(
+                  selectedFilterIndex: _selectedFilterIndex,
+                  onFilterChanged: (index) {
+                    setState(() {
+                      _selectedFilterIndex = index;
+                    });
+                  },
+                  searchController: _searchController,
+                  onSearchChanged: (val) {
+                    setState(() {
+                      _searchQuery = val;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                // Section 2 & 3: Warung & Kuliner Lokal
+                if (showWarung) ...[
+                  _buildSectionTitle(
+                    title: 'Warung & Kuliner Lokal',
+                    subtitle: 'Warung warga lokal di sekitar area camping',
                   ),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.forestMuted),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredWarungs.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      return WarungItemCard(warung: filteredWarungs[index]);
+                    },
+                  ),
+                  const SizedBox(height: 28),
+                ],
 
-            // Category Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(_categories.length, (index) {
-                  final isSelected = _selectedCategoryIndex == index;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      label: Text(_categories[index]),
-                      selected: isSelected,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.surface,
-                      showCheckmark: false,
-                      side: BorderSide(
-                        color: isSelected ? AppColors.primary : AppColors.sageBorder,
-                      ),
-                      labelStyle: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AppColors.forest : AppColors.textSecondary,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedCategoryIndex = index);
-                        }
-                      },
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 20),
+                // Section 4 & 5: Sewa Alat Camping & Outdoor
+                if (showRental) ...[
+                  _buildSectionTitle(
+                    title: 'Sewa Alat Camping & Outdoor',
+                    subtitle: 'Rental peralatan camping resmi di Bedengan',
+                    prefixIcon: Icons.change_history_rounded,
+                  ),
+                  const SizedBox(height: 12),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredRentals.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      return RentalItemCard(rental: filteredRentals[index]);
+                    },
+                  ),
+                  const SizedBox(height: 28),
+                ],
 
-            // Item cards
-            ...filtered.map((item) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: AppColors.cardShadow,
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(
-                        item['icon'] as IconData,
-                        color: AppColors.forest,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
+                // Section 6 & 7: Fotografer Wedding & Prewedding
+                if (showPhotographer) ...[
+                  _buildSectionTitle(
+                    title: 'Fotografer Wedding & Prewedding',
+                    subtitle:
+                        'Nature, love, and timeless memories\nAbadikan momen spesialmu dengan keindahan alam Bedengan sebagai saksinya',
+                    prefixIcon: Icons.camera_alt_outlined,
+                  ),
+                  const SizedBox(height: 12),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredPhotographers.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      return PhotographerItemCard(
+                        photographer: filteredPhotographers[index],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                // Empty Search Fallback
+                if (!showWarung && !showRental && !showPhotographer) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40.0),
+                    child: Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  item['title'] as String,
-                                  style: const TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.forest,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.sageLight,
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                                child: Text(
-                                  item['tag'] as String,
-                                  style: const TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.forest,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: AppColors.textLight.withValues(alpha: 0.8),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            item['desc'] as String,
-                            style: const TextStyle(
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Tidak ada hasil ditemukan',
+                            style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 12,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.forest,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Coba kata kunci pencarian atau filter lain',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 13,
                               color: AppColors.textSecondary,
-                              height: 1.4,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              );
-            }),
-          ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Section 8: Register Vendor Card
+                const RegisterVendorCard(),
+
+                // Section 9: Sticky Floating Navbar Clearance
+                const SizedBox(height: 120),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  /// Helper to build consistent section headers with optional icon
+  Widget _buildSectionTitle({
+    required String title,
+    required String subtitle,
+    IconData? prefixIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (prefixIcon != null) ...[
+              Icon(
+                prefixIcon,
+                size: 20,
+                color: AppColors.primaryDark,
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.forest,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+            height: 1.4,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
