@@ -4,6 +4,7 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/ground_camping/presentation/screens/ground_camping_screen.dart';
 import '../../features/panduan/presentation/screens/panduan_screen.dart';
 import '../../features/katalog/presentation/screens/katalog_screen.dart';
+import '../../features/katalog/presentation/screens/register_vendor_screen.dart';
 import '../../shared_widgets/main_dashboard.dart';
 
 class AppRoutes {
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String groundCamping = '/ground-camping';
   static const String panduan = '/panduan';
   static const String katalog = '/katalog';
+  static const String registerVendor = '/register-vendor';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -31,6 +33,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const PanduanScreen());
       case katalog:
         return MaterialPageRoute(builder: (_) => const KatalogScreen());
+      case registerVendor:
+        return MaterialPageRoute(builder: (_) => const RegisterVendorScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

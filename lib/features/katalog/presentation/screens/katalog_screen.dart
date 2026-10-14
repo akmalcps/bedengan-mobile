@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/app_routes.dart';
 
 class KatalogScreen extends StatefulWidget {
   const KatalogScreen({super.key});
@@ -219,6 +220,78 @@ class _KatalogScreenState extends State<KatalogScreen> {
                 ),
               );
             }),
+
+            // ── Register Vendor CTA Card ──────────────────
+            const SizedBox(height: 4),
+            GestureDetector(
+              onTap: () => Navigator.of(context).pushNamed(AppRoutes.registerVendor),
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.12),
+                      AppColors.sageLight,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.sageBorder),
+                      ),
+                      child: const Icon(
+                        Icons.storefront_rounded,
+                        color: AppColors.forest,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Daftarkan Usaha / Jasamu di Katalog',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.forest,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Gratis · Langsung terhubung ke WhatsApp pengunjung',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: AppColors.forestMuted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
