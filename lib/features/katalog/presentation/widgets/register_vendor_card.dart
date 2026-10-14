@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/app_routes.dart';
 
 class RegisterVendorCard extends StatelessWidget {
   const RegisterVendorCard({super.key});
@@ -30,7 +31,7 @@ class RegisterVendorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _contactAdmin(context),
+      onTap: () => Navigator.of(context).pushNamed(AppRoutes.registerVendor),
       behavior: HitTestBehavior.opaque,
       child: CustomPaint(
         painter: _DashedRoundedRectPainter(

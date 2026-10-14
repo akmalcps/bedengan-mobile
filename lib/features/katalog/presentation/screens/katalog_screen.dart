@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/katalog_models.dart';
 import '../widgets/katalog_header.dart';
@@ -42,9 +43,11 @@ class _KatalogScreenState extends State<KatalogScreen> {
       if (query.isEmpty) return true;
       return r.name.toLowerCase().contains(query) ||
           r.description.toLowerCase().contains(query) ||
-          r.items.any((i) =>
-              (i['name'] ?? '').toLowerCase().contains(query) ||
-              (i['price'] ?? '').toLowerCase().contains(query));
+          r.items.any(
+            (i) =>
+                (i['name'] ?? '').toLowerCase().contains(query) ||
+                (i['price'] ?? '').toLowerCase().contains(query),
+          );
     }).toList();
 
     final filteredPhotographers = dummyPhotographers.where((p) {
@@ -58,13 +61,13 @@ class _KatalogScreenState extends State<KatalogScreen> {
     // 0: Semua, 1: Warung & Kuliner, 2: Fotografer Wedding, 3: Sewa Alat Camping
     final showWarung =
         (_selectedFilterIndex == 0 || _selectedFilterIndex == 1) &&
-            filteredWarungs.isNotEmpty;
+        filteredWarungs.isNotEmpty;
     final showRental =
         (_selectedFilterIndex == 0 || _selectedFilterIndex == 3) &&
-            filteredRentals.isNotEmpty;
+        filteredRentals.isNotEmpty;
     final showPhotographer =
         (_selectedFilterIndex == 0 || _selectedFilterIndex == 2) &&
-            filteredPhotographers.isNotEmpty;
+        filteredPhotographers.isNotEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -140,8 +143,7 @@ class _KatalogScreenState extends State<KatalogScreen> {
                 if (showPhotographer) ...[
                   _buildSectionTitle(
                     title: 'Fotografer Wedding & Prewedding',
-                    subtitle:
-                        'Nature, love, and timeless memories\nAbadikan momen spesialmu dengan keindahan alam Bedengan sebagai saksinya',
+                    subtitle: 'Nature, love, and timeless memories\nAbadikan momen spesialmu dengan keindahan alam Bedengan sebagai saksinya',
                     prefixIcon: Icons.camera_alt_outlined,
                   ),
                   const SizedBox(height: 12),
@@ -206,83 +208,6 @@ class _KatalogScreenState extends State<KatalogScreen> {
               ],
             ),
           ),
-                  ],
-                ),
-              );
-            }),
-
-            // ── Register Vendor CTA Card ──────────────────
-            const SizedBox(height: 4),
-            GestureDetector(
-              onTap: () => Navigator.of(context).pushNamed(AppRoutes.registerVendor),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.12),
-                      AppColors.sageLight,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.sageBorder),
-                      ),
-                      child: const Icon(
-                        Icons.storefront_rounded,
-                        color: AppColors.forest,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Daftarkan Usaha / Jasamu di Katalog',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.forest,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            'Gratis · Langsung terhubung ke WhatsApp pengunjung',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: AppColors.forestMuted,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -301,11 +226,7 @@ class _KatalogScreenState extends State<KatalogScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (prefixIcon != null) ...[
-              Icon(
-                prefixIcon,
-                size: 20,
-                color: AppColors.primaryDark,
-              ),
+              Icon(prefixIcon, size: 20, color: AppColors.primaryDark),
               const SizedBox(width: 8),
             ],
             Expanded(
