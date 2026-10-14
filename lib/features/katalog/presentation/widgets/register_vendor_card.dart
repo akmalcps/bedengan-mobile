@@ -1,32 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_routes.dart';
 
 class RegisterVendorCard extends StatelessWidget {
   const RegisterVendorCard({super.key});
-
-  Future<void> _contactAdmin(BuildContext context) async {
-    final Uri url = Uri.parse(
-      'https://wa.me/6281234567890?text=Halo%20Admin%20Bedengan%20Xplore,%20saya%20ingin%20mendaftarkan%20usaha/jasa%20saya%20di%20Katalog.',
-    );
-    try {
-      final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
-      if (!launched && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tidak dapat membuka WhatsApp pendaftaran.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

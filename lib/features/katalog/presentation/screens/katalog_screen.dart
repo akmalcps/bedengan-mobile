@@ -7,7 +7,6 @@ import '../widgets/warung_item_card.dart';
 import '../widgets/rental_item_card.dart';
 import '../widgets/photographer_item_card.dart';
 import '../widgets/register_vendor_card.dart';
-import '../../../../core/utils/app_routes.dart';
 
 class KatalogScreen extends StatefulWidget {
   const KatalogScreen({super.key});
