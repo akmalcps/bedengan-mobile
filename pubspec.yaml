@@ -61,6 +61,7 @@ flutter:
   assets:
     - assets/images/evacuation_map.png
     - assets/images/app_logo.png
+    - assets/images/bedengan_map.png
     - assets/fonts/
 
   fonts:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_assets.dart';
 
@@ -111,7 +112,9 @@ class OverallMapCard extends StatelessWidget {
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 11,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
                             ),
                           ),
                         ],
