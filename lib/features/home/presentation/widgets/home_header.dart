@@ -1,75 +1,82 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+
+  const HomeHeader({
+    super.key,
+    this.showBackButton = false,
+    this.onBackPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Tombol back akan muncul jika Navigator bisa pop atau dipaksa via showBackButton
+    final canPop = showBackButton || Navigator.canPop(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Mountain & Tree Logo Symbol
-          SizedBox(
-            width: 38,
-            height: 28,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned(
-                  top: 2,
-                  right: 10,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+          // Sisi Kiri: Tombol Back / Spacing
+          if (canPop)
+            GestureDetector(
+              onTap: onBackPressed ?? () => Navigator.maybePop(context),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                child: const Icon(
+                  Icons.chevron_left_rounded,
+                  size: 28,
+                  color: AppColors.forest,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: const [
-                    Icon(
-                      Icons.landscape_rounded,
-                      size: 26,
-                      color: AppColors.forest,
-                    ),
-                    Icon(
-                      Icons.park_rounded,
-                      size: 16,
-                      color: AppColors.forest,
-                    ),
-                  ],
+              ),
+            )
+          else
+            const SizedBox(width: 40), // Penyeimbang tata letak kiri
+          // Sisi Tengah: Logo App
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                AppAssets.appLogo,
+                height: 28,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.terrain, color: AppColors.primary),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'BEDENGAN ',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: AppColors.forest,
                 ),
-              ],
-            ),
+              ),
+              const Text(
+                'XPLORE',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          const Text(
-            'BEDENGAN ',
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-              color: AppColors.forest,
-            ),
-          ),
-          const Text(
-            'XPLORE',
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-              color: AppColors.primary,
-            ),
-          ),
+
+          // Sisi Kanan: Spacing Penyeimbang agar Logo Tetap di Tengah
+          const SizedBox(width: 40),
         ],
       ),
     );

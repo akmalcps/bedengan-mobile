@@ -93,6 +93,8 @@ class _KatalogScreenState extends State<KatalogScreen> {
                       _searchQuery = val;
                     });
                   },
+                  showBackButton: true,
+                  onBackPressed: () => Navigator.maybePop(context),
                 ),
 
                 const SizedBox(height: 24),

@@ -18,9 +18,12 @@ class CustomAppHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/images/app_logo.png', // pastikan path ini aman
+            'assets/images/app_logo.png',
             height: 24,
-            errorBuilder: (context, error, stackTrace) => const Icon(Icons.terrain, color: Color(0xFF8BBE45)), // Fallback jika gambar gagal dimuat
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.terrain,
+              color: Color(0xFF8BBE45),
+            ), // Fallback jika gambar gagal dimuat
           ),
           const SizedBox(width: 8),
           const Text(

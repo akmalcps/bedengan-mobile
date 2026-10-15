@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared_widgets/floating_navbar.dart';
 import '../../../home/presentation/widgets/home_header.dart';
@@ -23,10 +24,13 @@ class PanduanScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section 1: Custom App Bar (Logo)
+                // Section 1: Custom App Bar (Logo + Back Button)
                 SafeArea(
                   bottom: false,
-                  child: const HomeHeader(),
+                  child: HomeHeader(
+                    showBackButton: true,
+                    onBackPressed: () => Navigator.maybePop(context),
+                  ),
                 ),
 
                 // Section 2: Header
@@ -95,7 +99,6 @@ class PanduanScreen extends StatelessWidget {
       ),
     );
   }
-
 
   // ───────────────────────────────────────────────────────
   // Header Section

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class KatalogHeader extends StatelessWidget {
@@ -6,6 +8,8 @@ class KatalogHeader extends StatelessWidget {
   final ValueChanged<int> onFilterChanged;
   final TextEditingController? searchController;
   final ValueChanged<String>? onSearchChanged;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
 
   const KatalogHeader({
     super.key,
@@ -13,6 +17,8 @@ class KatalogHeader extends StatelessWidget {
     required this.onFilterChanged,
     this.searchController,
     this.onSearchChanged,
+    this.showBackButton = false,
+    this.onBackPressed,
   });
 
   static const List<String> filters = [
@@ -24,18 +30,20 @@ class KatalogHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = showBackButton || Navigator.canPop(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top Brand Bar (matches screenshot)
+        // Top Brand Bar
         Padding(
           padding: const EdgeInsets.only(top: 8.0, bottom: 12.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (Navigator.canPop(context))
+              if (canPop)
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: onBackPressed ?? () => Navigator.maybePop(context),
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     padding: const EdgeInsets.all(6),
@@ -53,44 +61,17 @@ class KatalogHeader extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
-                    width: 30,
+                  Image.asset(
+                    AppAssets.appLogo,
                     height: 24,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned(
-                          top: 1,
-                          right: 6,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: const [
-                            Icon(
-                              Icons.landscape_rounded,
-                              size: 20,
-                              color: AppColors.forest,
-                            ),
-                            Icon(
-                              Icons.park_rounded,
-                              size: 14,
-                              color: AppColors.forest,
-                            ),
-                          ],
-                        ),
-                      ],
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.terrain,
+                      color: AppColors.primary,
+                      size: 20,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   const Text(
                     'BEDENGAN ',
                     style: TextStyle(
@@ -184,8 +165,9 @@ class KatalogHeader extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 12.5,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
                         color: isSelected
                             ? AppColors.forest
                             : AppColors.textSecondary,
