@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_assets.dart';
 import '../../../../shared_widgets/floating_navbar.dart';
+import '../../../home/presentation/widgets/home_header.dart';
 import '../../data/models/rule_model.dart';
 import '../widgets/warning_card.dart';
 import '../widgets/rule_item_card.dart';
@@ -23,8 +23,11 @@ class PanduanScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section 1: Custom App Bar
-                _buildCustomAppBar(context),
+                // Section 1: Custom App Bar (Logo)
+                SafeArea(
+                  bottom: false,
+                  child: const HomeHeader(),
+                ),
 
                 // Section 2: Header
                 _buildHeader(),
@@ -93,81 +96,6 @@ class PanduanScreen extends StatelessWidget {
     );
   }
 
-  // ───────────────────────────────────────────────────────
-  // Custom App Bar
-  // ───────────────────────────────────────────────────────
-  Widget _buildCustomAppBar(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
-        child: Row(
-          children: [
-            // Back Button
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 18,
-                color: AppColors.forest,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: AppColors.sageBorder,
-                    width: 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(10),
-              ),
-            ),
-            const Spacer(),
-            // Logo
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  AppAssets.appLogo,
-                  height: 28,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.terrain_rounded,
-                      size: 28,
-                      color: AppColors.primary,
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'BEDENGAN',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.forest,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(width: 3),
-                const Text(
-                  'XPLORE',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ───────────────────────────────────────────────────────
   // Header Section
