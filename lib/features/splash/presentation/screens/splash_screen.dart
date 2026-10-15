@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../shared_widgets/main_dashboard.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -16,15 +18,15 @@ class SplashScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF3F8EF),
-              Color(0xFFE4EEE0),
-            ],
+            colors: [Color(0xFFF3F8EF), Color(0xFFE4EEE0)],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+              vertical: 24.0,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -33,50 +35,13 @@ class SplashScreen extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Mountain & Nature Emblem
-                    Container(
+                    // App Logo Asset
+                    SizedBox(
                       width: 120,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Positioned(
-                            top: 6,
-                            right: 36,
-                            child: Container(
-                              width: 18,
-                              height: 18,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Icon(
-                                Icons.landscape_rounded,
-                                size: 64,
-                                color: AppColors.forest,
-                              ),
-                              Transform.translate(
-                                offset: const Offset(-8, -6),
-                                child: const Icon(
-                                  Icons.park_rounded,
-                                  size: 34,
-                                  color: AppColors.forest,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      height: 120,
+                      child: Image.asset(
+                        AppAssets.appLogo,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: 16),
