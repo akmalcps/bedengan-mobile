@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../data/services/katalog_service.dart';
 
 class RegisterVendorScreen extends StatefulWidget {
   const RegisterVendorScreen({super.key});
@@ -17,11 +20,16 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
   final TextEditingController whatsappController = TextEditingController();
   final TextEditingController instagramController = TextEditingController();
   final TextEditingController menuUnggulanController = TextEditingController();
-  final TextEditingController jamOperasionalController =
-      TextEditingController(text: '07.00 - 22.00');
+  final TextEditingController jamOperasionalController = TextEditingController(
+    text: '07.00 - 22.00',
+  );
   bool is24Hours = false;
   bool isCommitted = false;
-  List<String> uploadedPhotos = ['Foto 1\nTampak Depan', 'Foto 2\nMenu / Price List'];
+  final KatalogService _katalogService = KatalogService();
+  bool isLoading = false;
+  List<String> uploadedPhotos = [];
+  List<String> selectedImagePaths = [];
+  List<Uint8List> selectedImageBytes = [];
 
   @override
   void dispose() {
@@ -35,28 +43,150 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
   }
 
   // ── Helpers ─────────────────────────────────────────────
-  void _onSubmit() {
-    if (!isCommitted || selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.forest,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Text(
-            selectedCategory == null
-                ? 'Pilih kategori usaha terlebih dahulu.'
-                : 'Centang komitmen kebersihan alam terlebih dahulu.',
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 13,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      );
+  Future<void> _pickImage() async {
+    if (uploadedPhotos.length >= 10) {
+      _showSnackBar('Maksimal 10 foto yang dapat diunggah.');
       return;
     }
-    _showSuccessDialog();
+
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          selectedImagePaths.add(picked.path);
+          selectedImageBytes.add(bytes);
+          uploadedPhotos.add(picked.name);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Gagal memilih gambar: $e', isError: true);
+      }
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: isError ? Colors.red.shade700 : AppColors.forest,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 13,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onSubmit() async {
+    if (isLoading) return;
+
+    if (selectedCategory == null) {
+      _showSnackBar('Pilih kategori usaha terlebih dahulu.');
+      return;
+    }
+
+    if (namaUsahaController.text.trim().isEmpty) {
+      _showSnackBar('Nama usaha/layanan wajib diisi.');
+      return;
+    }
+
+    if (namaPemilikController.text.trim().isEmpty) {
+      _showSnackBar('Nama pemilik/penanggung jawab wajib diisi.');
+      return;
+    }
+
+    if (whatsappController.text.trim().isEmpty) {
+      _showSnackBar('Nomor WhatsApp wajib diisi.');
+      return;
+    }
+
+    if (!isCommitted) {
+      _showSnackBar('Centang komitmen kebersihan alam terlebih dahulu.');
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // Map kategori pilihan UI ke format identifier backend
+      String categoryKey = 'warung';
+      if (selectedCategory == 'Fotografer Prewed') {
+        categoryKey = 'photographer';
+      } else if (selectedCategory == 'Sewa Alat Camp') {
+        categoryKey = 'rental';
+      } else if (selectedCategory == 'Warung & Kuliner') {
+        categoryKey = 'warung';
+      }
+
+      final operatingHours = is24Hours
+          ? '00:00 - 23:59 WIB'
+          : jamOperasionalController.text.trim().replaceAll('.', ':');
+
+      // Ekstrak tag jika ada dari menu / list
+      List<String> tags = [];
+      if (menuUnggulanController.text.trim().isNotEmpty) {
+        tags = menuUnggulanController.text
+            .split(RegExp(r'[,;\n]'))
+            .map((t) => t.trim())
+            .where((t) => t.isNotEmpty)
+            .toList();
+      }
+
+      final String? primaryImagePath = selectedImagePaths.isNotEmpty
+          ? selectedImagePaths.first
+          : null;
+      final List<int>? primaryImageBytes = selectedImageBytes.isNotEmpty
+          ? selectedImageBytes.first
+          : null;
+      final String? primaryImageName = uploadedPhotos.isNotEmpty
+          ? uploadedPhotos.first
+          : null;
+
+      await _katalogService.applyVendor(
+        category: categoryKey,
+        name: namaUsahaController.text.trim(),
+        applicantName: namaPemilikController.text.trim(),
+        whatsapp: whatsappController.text.trim(),
+        instagram: instagramController.text.trim(),
+        description: menuUnggulanController.text.trim(),
+        operatingHours: operatingHours,
+        tags: tags,
+        imagePath: primaryImagePath,
+        imageBytes: primaryImageBytes,
+        imageName: primaryImageName,
+      );
+
+      if (mounted) {
+        _showSuccessDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorMsg = e.toString().replaceAll('Exception: ', '');
+        _showSnackBar(errorMsg, isError: true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   void _showSuccessDialog() {
@@ -78,7 +208,7 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                 child: GestureDetector(
                   onTap: () {
                     Navigator.of(dialogCtx).pop(); // close dialog
-                    Navigator.of(context).pop();   // return to KatalogScreen
+                    Navigator.of(context).pop(); // return to KatalogScreen
                   },
                   child: Container(
                     width: 28,
@@ -198,7 +328,9 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isSelected ? AppColors.forest : AppColors.textPrimary,
+                      color: isSelected
+                          ? AppColors.forest
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -221,7 +353,11 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check_rounded, size: 13, color: AppColors.forest),
+                child: const Icon(
+                  Icons.check_rounded,
+                  size: 13,
+                  color: AppColors.forest,
+                ),
               ),
           ],
         ),
@@ -243,7 +379,11 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
   }
 
   // ── Field Label ──────────────────────────────────────────
-  Widget _buildFieldLabel(String label, {bool required = false, String? action}) {
+  Widget _buildFieldLabel(
+    String label, {
+    bool required = false,
+    String? action,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -322,7 +462,10 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 13,
+            ),
             filled: true,
             fillColor: AppColors.surface,
             border: OutlineInputBorder(
@@ -335,7 +478,10 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -379,7 +525,11 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.forest),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: AppColors.forest,
+          ),
         ),
         title: const Text(
           'Daftar Mitra Katalog',
@@ -437,14 +587,21 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                         _buildSectionLabel('2. Profil Usaha / Brand'),
                         const SizedBox(height: 16),
 
-                        _buildFieldLabel('Nama Usaha atau Nama Jasa', required: true),
+                        _buildFieldLabel(
+                          'Nama Usaha atau Nama Jasa',
+                          required: true,
+                        ),
                         _buildTextField(
                           controller: namaUsahaController,
-                          hint: 'Contoh: Warung Berkah Mak Siti / @rimba.visuals',
+                          hint:
+                              'Contoh: Warung Berkah Mak Siti / @rimba.visuals',
                         ),
                         const SizedBox(height: 14),
 
-                        _buildFieldLabel('Nama Pemilik / Pengelola', required: true),
+                        _buildFieldLabel(
+                          'Nama Pemilik / Pengelola',
+                          required: true,
+                        ),
                         _buildTextField(
                           controller: namaPemilikController,
                           hint: 'Nama lengkap Anda',
@@ -461,12 +618,14 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                           hint: '812–3456–7890',
                           prefixText: '+62  ',
                           keyboardType: TextInputType.phone,
-                          helperText:
-                              'Pastikan nomor aktif WhatsApp untuk menerima order dari pengunjung Bedengan.',
+                          helperText: 'Pastikan nomor aktif WhatsApp untuk menerima order dari pengunjung Bedengan.',
                         ),
                         const SizedBox(height: 14),
 
-                        _buildFieldLabel('Akun Instagram / TikTok', required: false),
+                        _buildFieldLabel(
+                          'Akun Instagram / TikTok',
+                          required: false,
+                        ),
                         _buildTextField(
                           controller: instagramController,
                           hint: 'username.usaha (untuk portofolio / katalog)',
@@ -486,7 +645,10 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                           _buildSectionLabel('3. Jam Operasional'),
                           const SizedBox(height: 14),
 
-                          _buildFieldLabel('Jam Operasional Warung / Layanan', required: true),
+                          _buildFieldLabel(
+                            'Jam Operasional Warung / Layanan',
+                            required: true,
+                          ),
                           Row(
                             children: [
                               // Checkbox Buka 24 Jam
@@ -495,19 +657,24 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                                   onTap: () => setState(() {
                                     is24Hours = !is24Hours;
                                     if (is24Hours) {
-                                      jamOperasionalController.text = '00.00 - 24.00';
+                                      jamOperasionalController.text =
+                                          '00.00 - 24.00';
                                     } else {
-                                      jamOperasionalController.text = '07.00 - 22.00';
+                                      jamOperasionalController.text =
+                                          '07.00 - 22.00';
                                     }
                                   }),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 13),
+                                      horizontal: 10,
+                                      vertical: 13,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.surface,
                                       borderRadius: BorderRadius.circular(12),
-                                      border:
-                                          Border.all(color: AppColors.sageBorder),
+                                      border: Border.all(
+                                        color: AppColors.sageBorder,
+                                      ),
                                     ),
                                     child: Row(
                                       children: [
@@ -518,17 +685,21 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                                             value: is24Hours,
                                             onChanged: (val) => setState(() {
                                               is24Hours = val ?? false;
-                                              jamOperasionalController.text = is24Hours
+                                              jamOperasionalController.text =
+                                                  is24Hours
                                                   ? '00.00 - 24.00'
                                                   : '07.00 - 22.00';
                                             }),
                                             activeColor: AppColors.primary,
                                             checkColor: AppColors.forest,
                                             side: const BorderSide(
-                                                color: AppColors.sageBorder),
+                                              color: AppColors.sageBorder,
+                                            ),
                                             materialTapTargetSize:
-                                                MaterialTapTargetSize.shrinkWrap,
-                                            visualDensity: VisualDensity.compact,
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            visualDensity:
+                                                VisualDensity.compact,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
@@ -567,7 +738,9 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                                       color: AppColors.textLight,
                                     ),
                                     contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 13),
+                                      horizontal: 12,
+                                      vertical: 13,
+                                    ),
                                     filled: true,
                                     fillColor: is24Hours
                                         ? AppColors.surfaceLight
@@ -575,22 +748,27 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       borderSide: const BorderSide(
-                                          color: AppColors.sageBorder),
+                                        color: AppColors.sageBorder,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       borderSide: const BorderSide(
-                                          color: AppColors.sageBorder),
+                                        color: AppColors.sageBorder,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       borderSide: const BorderSide(
-                                          color: AppColors.primary, width: 1.5),
+                                        color: AppColors.primary,
+                                        width: 1.5,
+                                      ),
                                     ),
                                     disabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       borderSide: const BorderSide(
-                                          color: AppColors.sageBorder),
+                                        color: AppColors.sageBorder,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -599,14 +777,15 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                           ),
                           const SizedBox(height: 14),
 
-                          _buildFieldLabel('Menu Utama / Item Layanan Unggulan', required: true),
+                          _buildFieldLabel(
+                            'Menu Utama / Item Layanan Unggulan',
+                            required: true,
+                          ),
                           _buildTextField(
                             controller: menuUnggulanController,
-                            hint:
-                                'Contoh:\n• Soto Ayam & Mie Rebus Spesial\n• Aneka Gorengan Hangat & Teh Tarik\n• Rental Tenda Dome 4P + Matras',
+                            hint: 'Contoh:\n• Soto Ayam & Mie Rebus Spesial\n• Aneka Gorengan Hangat & Teh Tarik\n• Rental Tenda Dome 4P + Matras',
                             multiline: true,
-                            helperText:
-                                'Item ini akan ditampilkan sebagai badge filter pada kartu katalog Anda.',
+                            helperText: 'Item ini akan ditampilkan sebagai badge filter pada kartu katalog Anda.',
                           ),
                         ],
                       ),
@@ -624,7 +803,12 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildSectionLabel('4. Foto Usaha / Brosur / Sampel Layanan'),
+                            Expanded(
+                              child: _buildSectionLabel(
+                                '4. Foto Usaha / Sampel',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Text(
                               'Maks. 10 foto',
                               style: TextStyle(
@@ -640,12 +824,7 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
 
                         // Upload area
                         GestureDetector(
-                          onTap: () {
-                            if (uploadedPhotos.length < 10) {
-                              setState(() => uploadedPhotos
-                                  .add('Foto ${uploadedPhotos.length + 1}'));
-                            }
-                          },
+                          onTap: _pickImage,
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 28),
@@ -653,7 +832,9 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                               color: const Color(0xFFF6FAF4),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.45),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.45,
+                                ),
                                 width: 1.5,
                                 strokeAlign: BorderSide.strokeAlignInside,
                               ),
@@ -704,17 +885,19 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            ...uploadedPhotos.map((label) => _buildPhotoChip(label)),
+                            ...uploadedPhotos.asMap().entries.map(
+                              (entry) =>
+                                  _buildPhotoChip(entry.value, entry.key),
+                            ),
                             // + Tambah button
                             if (uploadedPhotos.length < 10)
                               GestureDetector(
-                                onTap: () {
-                                  setState(() => uploadedPhotos
-                                      .add('Foto ${uploadedPhotos.length + 1}'));
-                                },
+                                onTap: _pickImage,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppColors.surface,
                                     borderRadius: BorderRadius.circular(10),
@@ -788,9 +971,7 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFFF2FAF0),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.5),
-            ),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -842,27 +1023,48 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
     );
   }
 
-  Widget _buildPhotoChip(String label) {
+  Widget _buildPhotoChip(String label, int index) {
+    final displayName = label.length > 20
+        ? '${label.substring(0, 17)}...'
+        : label;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.sageLight,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.image_outlined, size: 18, color: AppColors.forest),
-          const SizedBox(height: 3),
+          const Icon(Icons.image_outlined, size: 16, color: AppColors.forest),
+          const SizedBox(width: 4),
           Text(
-            label,
+            displayName,
             style: const TextStyle(
               fontFamily: 'Plus Jakarta Sans',
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.forest,
             ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                if (index < uploadedPhotos.length)
+                  uploadedPhotos.removeAt(index);
+                if (index < selectedImagePaths.length)
+                  selectedImagePaths.removeAt(index);
+                if (index < selectedImageBytes.length)
+                  selectedImageBytes.removeAt(index);
+              });
+            },
+            child: const Icon(
+              Icons.close_rounded,
+              size: 14,
+              color: AppColors.forestMuted,
+            ),
           ),
         ],
       ),
@@ -886,7 +1088,9 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
               side: const BorderSide(color: AppColors.sageBorder, width: 1.5),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               visualDensity: VisualDensity.compact,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -907,7 +1111,8 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
   }
 
   Widget _buildSubmitBar() {
-    final bool canSubmit = isCommitted && selectedCategory != null;
+    final bool canSubmit =
+        isCommitted && selectedCategory != null && !isLoading;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       decoration: BoxDecoration(
@@ -925,7 +1130,7 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _onSubmit,
+            onPressed: canSubmit ? _onSubmit : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: canSubmit
                   ? AppColors.primary
@@ -937,14 +1142,23 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
               ),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child: const Text(
-              'Kirim Pendaftaran',
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            child: isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: AppColors.forest,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Text(
+                    'Kirim Pendaftaran',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
           ),
         ),
       ),
