@@ -156,7 +156,7 @@ class _KatalogScreenState extends State<KatalogScreen> {
     }
 
     final resolvedUrl = ApiConfig.resolveImageUrl(
-      item['image_url']?.toString(),
+      item['image_url']?.toString() ?? '',
     );
     final List<String> defaultSamples = [
       'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop',

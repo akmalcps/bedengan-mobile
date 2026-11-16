@@ -1052,12 +1052,15 @@ class _RegisterVendorScreenState extends State<RegisterVendorScreen> {
           GestureDetector(
             onTap: () {
               setState(() {
-                if (index < uploadedPhotos.length)
+                if (index < uploadedPhotos.length) {
                   uploadedPhotos.removeAt(index);
-                if (index < selectedImagePaths.length)
+                }
+                if (index < selectedImagePaths.length) {
                   selectedImagePaths.removeAt(index);
-                if (index < selectedImageBytes.length)
+                }
+                if (index < selectedImageBytes.length) {
                   selectedImageBytes.removeAt(index);
+                }
               });
             },
             child: const Icon(

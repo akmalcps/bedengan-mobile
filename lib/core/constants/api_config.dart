@@ -14,19 +14,21 @@ class ApiConfig {
     return 'http://localhost:5000';
   }
 
-  /// Helper to resolve image URLs returned by the server (e.g., replace localhost with 10.0.2.2 on Android)
-  static String resolveImageUrl(String? url) {
-    if (url == null || url.isEmpty) return '';
-    if (!kIsWeb && Platform.isAndroid && url.contains('localhost:5000')) {
-      return url.replaceAll('localhost:5000', '10.0.2.2:5000');
+  static String resolveImageUrl(String path) {
+    if (path.isEmpty) return '';
+    
+    // CEK CLOUDINARY: Jika URL sudah berawalan http/https dari internet, 
+    // langsung kembalikan apa adanya (jangan ditimpa localhost)
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
     }
-    if (!kIsWeb && Platform.isAndroid && url.contains('127.0.0.1:5000')) {
-      return url.replaceAll('127.0.0.1:5000', '10.0.2.2:5000');
+    
+    // CEK LOKAL: Jika URL dari folder lokal backend (/uploads/...), 
+    // tambahkan baseUrl agar bisa diakses emulator
+    if (!path.startsWith('/')) {
+      path = '/$path';
     }
-    if (url.startsWith('/')) {
-      return '$baseImageUrl$url';
-    }
-    return url;
+    return '$baseUrl$path';
   }
 }
 
