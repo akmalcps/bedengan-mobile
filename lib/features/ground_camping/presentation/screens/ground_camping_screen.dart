@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared_widgets/floating_navbar.dart';
 import '../../data/models/ground_model.dart';
+import '../../data/services/ground_service.dart';
 import '../widgets/overall_map_card.dart';
 import '../widgets/ground_item_card.dart';
 import '../widgets/etiquette_card.dart';
@@ -15,6 +16,22 @@ class GroundCampingScreen extends StatefulWidget {
 
 class _GroundCampingScreenState extends State<GroundCampingScreen> {
   int _currentNavIndex = 0;
+  final GroundService _groundService = GroundService();
+  late Future<List<GroundModel>> _groundsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _groundsFuture = _groundService.fetchGrounds();
+  }
+
+  Future<void> _refreshGrounds() async {
+    final future = _groundService.fetchGrounds();
+    setState(() {
+      _groundsFuture = future;
+    });
+    await future;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,61 +42,89 @@ class _GroundCampingScreenState extends State<GroundCampingScreen> {
           // Layer 1 (Background): Scrollable Content
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Section 1: Custom App Bar / Header
-                    _buildCustomAppBar(context),
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: _refreshGrounds,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section 1: Custom App Bar / Header
+                      _buildCustomAppBar(context),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Section 2: Location Chip + Title + Subtitle
-                    _buildHeaderSection(),
+                      // Section 2: Location Chip + Title + Subtitle
+                      _buildHeaderSection(),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // Section 3: Overall Map Card
-                    const OverallMapCard(),
+                      // Section 3: Overall Map Card
+                      const OverallMapCard(),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // Section 4: Title "Daftar Ground (A – M)"
-                    const Text(
-                      'Daftar Ground (A – M)',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.forest,
+                      // Section 4: Title "Daftar Ground (A – M)"
+                      const Text(
+                        'Daftar Ground (A – M)',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.forest,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 14),
 
-                    // Section 5: Dynamic List of Ground Cards
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: dummyGrounds.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        return GroundItemCard(ground: dummyGrounds[index]);
-                      },
-                    ),
+                      // Section 5: Dynamic List of Ground Cards
+                      FutureBuilder<List<GroundModel>>(
+                        future: _groundsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 40.0),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            );
+                          }
 
-                    const SizedBox(height: 20),
+                          final grounds = (snapshot.hasData &&
+                                  snapshot.data!.isNotEmpty)
+                              ? snapshot.data!
+                              : dummyGrounds;
 
-                    // Section 6: Etiquette Card
-                    const EtiquetteCard(),
+                          return ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: grounds.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 16),
+                            itemBuilder: (context, index) {
+                              return GroundItemCard(ground: grounds[index]);
+                            },
+                          );
+                        },
+                      ),
 
-                    // Section 7: Bottom Clearance for Sticky Floating Navbar
-                    const SizedBox(height: 120),
-                  ],
+                      const SizedBox(height: 20),
+
+                      // Section 6: Etiquette Card
+                      const EtiquetteCard(),
+
+                      // Section 7: Bottom Clearance for Sticky Floating Navbar
+                      const SizedBox(height: 120),
+                    ],
+                  ),
                 ),
               ),
             ),

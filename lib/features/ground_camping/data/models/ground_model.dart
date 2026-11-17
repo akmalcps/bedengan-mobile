@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/api_config.dart';
 
 class GroundModel {
   final String id;
@@ -36,15 +37,120 @@ class GroundModel {
     this.facility1Icon,
     this.facility2Icon,
   });
+
+  /// Alias getter agar kompatibel dengan properti snake_case image_url dari backend API
+  // ignore: non_constant_identifier_names
+  String get image_url => imageUrl;
+
+  /// Factory untuk mem-parsing data Ground dari response JSON API backend GET /grounds
+  factory GroundModel.fromJson(Map<String, dynamic> json) {
+    // 1. Parsing image_url dari Cloudinary/backend dengan fallback resolver
+    final rawImageUrl =
+        (json['image_url'] ?? json['imageUrl'] ?? '').toString().trim();
+    final resolvedImageUrl = ApiConfig.resolveImageUrl(rawImageUrl);
+
+    // 2. Mapping warna highlight badge berdasarkan tema backend
+    Color badgeColor = const Color(0xFF10B981); // Default green
+    final theme = (json['highlight_theme'] ?? '').toString().toLowerCase();
+    if (theme == 'blue') {
+      badgeColor = const Color(0xFF2563EB);
+    } else if (theme == 'orange' || theme == 'amber') {
+      badgeColor = const Color(0xFFD97706);
+    } else if (theme == 'purple') {
+      badgeColor = const Color(0xFF7C3AED);
+    } else if (theme == 'teal') {
+      badgeColor = const Color(0xFF0D9488);
+    } else if (theme == 'red') {
+      badgeColor = const Color(0xFFEF4444);
+    } else if (theme == 'slate' || theme == 'gray') {
+      badgeColor = const Color(0xFF475569);
+    }
+
+    // 3. Highlight text
+    final highlightText = (json['highlight_text'] ??
+            json['highlightBadgeText'] ??
+            json['highlight_badge'] ??
+            'Zona Favorit')
+        .toString()
+        .trim();
+
+    // 4. Capacity
+    final rawCapacity = (json['capacity_badge'] ?? json['capacity'] ?? '')
+        .toString()
+        .trim();
+    final capacity = rawCapacity.isNotEmpty
+        ? (rawCapacity.toLowerCase().startsWith('kapasitas:')
+            ? rawCapacity
+            : 'Kapasitas: $rawCapacity')
+        : 'Kapasitas: ±20 Tenda';
+
+    // 5. Area size
+    final rawArea = (json['area_size'] ?? json['specs']?['area_size'] ?? '')
+        .toString()
+        .trim();
+    final areaSize = rawArea.isNotEmpty
+        ? (rawArea.toLowerCase().startsWith('luas:')
+            ? rawArea
+            : 'Luas: $rawArea')
+        : 'Luas: Standar';
+
+    // 6. Terrain feature
+    final terrainType = (json['terrain_feature'] ??
+            json['terrainType'] ??
+            json['specs']?['terrain_feature'] ??
+            'Tanah Alami')
+        .toString()
+        .trim();
+
+    // 7. Facilities
+    final facility1 = (json['nearby_facility'] ??
+            json['facility1'] ??
+            json['specs']?['nearby_facility'] ??
+            'Dekat Jalur Utama')
+        .toString()
+        .trim();
+
+    final facility2 = (json['toilet_distance'] ??
+            json['facility2'] ??
+            json['specs']?['toilet_distance'] ??
+            'Toilet Terjangkau')
+        .toString()
+        .trim();
+
+    final code = (json['code'] ?? json['id'] ?? '').toString().trim();
+    final rawName = (json['name'] ?? '').toString().trim();
+    final name = rawName.isNotEmpty
+        ? rawName
+        : (code.isNotEmpty ? 'GROUND $code' : 'GROUND');
+
+    return GroundModel(
+      id: code.isNotEmpty ? code : (json['id']?.toString() ?? ''),
+      name: name,
+      capacity: capacity,
+      imageUrl: resolvedImageUrl,
+      description: (json['description'] ?? '').toString().trim(),
+      areaSize: areaSize,
+      terrainType: terrainType,
+      facility1: facility1,
+      facility2: facility2,
+      highlightBadgeText: highlightText,
+      highlightBadgeColor: badgeColor,
+      areaIcon: Icons.square_foot_rounded,
+      terrainIcon: Icons.eco_rounded,
+      facility1Icon: Icons.bolt_rounded,
+      facility2Icon: Icons.wc_rounded,
+    );
+  }
 }
 
-/// Mock dataset covering Ground A through Ground M (13 zones)
+/// Dataset dataset Ground A sampai M dengan URL Cloudinary resmi sebagai fallback lokal
 final List<GroundModel> dummyGrounds = [
   const GroundModel(
     id: 'A',
     name: 'GROUND A',
     capacity: 'Kapasitas: ±35 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881815/bedengan/grounds/k1uedhmputmntmt5edju.jpg',
     description:
         'Lokasi tepat di samping pos registrasi & area parkir utama. Kontur tanah sangat datar beralaskan rumput lembut.',
     areaSize: 'Luas: ±850 m²',
@@ -62,7 +168,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'B',
     name: 'GROUND B',
     capacity: 'Kapasitas: ±20 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881836/bedengan/grounds/gorn9qgv1dacc8myyi7i.jpg',
     description:
         'Memiliki undakan terasering bertingkat dengan pemandangan terbuka menghadap lembah hutan pinus.',
     areaSize: 'Luas: ±520 m²',
@@ -80,7 +187,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'C',
     name: 'GROUND C',
     capacity: 'Kapasitas: ±18 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1496545672447-f699b503d270?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881854/bedengan/grounds/dew3wehbavvsr3nmiddh.jpg',
     description:
         'Bersebelahan langsung dengan aliran air sungai Bedengan yang jernih dan dangkal. Udara sangat sejuk dan segar.',
     areaSize: 'Luas: ±450 m²',
@@ -98,7 +206,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'D',
     name: 'GROUND D',
     capacity: 'Kapasitas: ±40 Tenda (Sangat Luas)',
-    imageUrl: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881869/bedengan/grounds/typmvlt8fz3pj6tw7avn.jpg',
     description:
         'Area terhampar luas di bagian atas bukit, memiliki lapangan api unggun bersama, favorit untuk gathering kantor atau pramuka.',
     areaSize: 'Luas: ±1.100 m²',
@@ -116,7 +225,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'E',
     name: 'GROUND E',
     capacity: 'Kapasitas: ±22 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1537905569824-f89f14cceb68?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881886/bedengan/grounds/k6m8lcwbjlwfzj1pnhib.jpg',
     description:
         'Sangat strategis bagi camper yang ingin kemudahan membeli makanan hangat, charger ponsel, dan dekat gazebo bersantai.',
     areaSize: 'Luas: ±580 m²',
@@ -134,7 +244,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'F',
     name: 'GROUND F',
     capacity: 'Kapasitas: ±25 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881902/bedengan/grounds/hleoo17rps9l0uahtnqf.jpg',
     description:
         'Dikelilingi tegakan pohon pinus tua yang tinggi dan rapat, menahan hembusan angin kencang serta sangat sejuk di siang hari.',
     areaSize: 'Luas: ±680 m²',
@@ -152,7 +263,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'G',
     name: 'GROUND G',
     capacity: 'Kapasitas: ±15 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1487730116645-74489c95b41b?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881916/bedengan/grounds/utqngd9oqv1hbykbnunm.jpg',
     description:
         'Suasana tenang di lereng perbukitan pinus dengan gemericik sungai samar di kejauhan, cocok untuk self-healing.',
     areaSize: 'Luas: ±420 m²',
@@ -170,7 +282,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'H',
     name: 'GROUND H',
     capacity: 'Kapasitas: ±28 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1517824806704-9040b037703b?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881933/bedengan/grounds/xsslpkcyyjal4q1qrfpv.jpg',
     description:
         'Kombinasi area teduh hutan pinus dan lapangan terbuka untuk bersantai bersama kerabat dan keluarga besar.',
     areaSize: 'Luas: ±750 m²',
@@ -188,7 +301,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'I',
     name: 'GROUND I',
     capacity: 'Kapasitas: ±16 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881949/bedengan/grounds/ruoszerzjnnigrwxzxpv.jpg',
     description:
         'Lokasi privat di ujung jalan setapak, berhadapan langsung dengan panorama bukit dan vegetasi hijau alami.',
     areaSize: 'Luas: ±460 m²',
@@ -206,7 +320,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'J',
     name: 'GROUND J',
     capacity: 'Kapasitas: ±20 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881964/bedengan/grounds/tpif3bf3pllwycsunjp4.jpg',
     description:
         'Menghadirkan pemandangan langit malam terbaik tanpa terhalang kanopi pohon, surga bagi pencinta stargazing.',
     areaSize: 'Luas: ±540 m²',
@@ -224,7 +339,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'K',
     name: 'GROUND K',
     capacity: 'Kapasitas: ±18 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881980/bedengan/grounds/drwsvbmj3aqfnpncpou9.jpg',
     description:
         'Diapit tebing pinus asri yang menyejukkan dengan semilir angin sepoi-sepoi sepanjang hari.',
     areaSize: 'Luas: ±490 m²',
@@ -242,7 +358,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'L',
     name: 'GROUND L',
     capacity: 'Kapasitas: ±24 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1445307806294-bff7f67ff225?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794881996/bedengan/grounds/o1sz7z2n4lld7xkmygwt.jpg',
     description:
         'Zona camping atas yang menawarkan ketenangan ekstra dengan jalan akses setapak berkerikil rapi.',
     areaSize: 'Luas: ±620 m²',
@@ -260,7 +377,8 @@ final List<GroundModel> dummyGrounds = [
     id: 'M',
     name: 'GROUND M',
     capacity: 'Kapasitas: ±30 Tenda',
-    imageUrl: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=800&auto=format&fit=crop',
+    imageUrl:
+        'https://res.cloudinary.com/iwa6xewr/image/upload/v1794882010/bedengan/grounds/mvwjywqdravfk3wdmqwj.jpg',
     description:
         'Zona puncak paling hulu dengan view hutan pinus terluas dan udara terdingin di kawasan Bedengan.',
     areaSize: 'Luas: ±820 m²',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../data/models/ground_model.dart';
 
 class GroundItemCard extends StatelessWidget {
@@ -43,55 +44,7 @@ class GroundItemCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(
-                      ground.imageUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return Container(
-                          color: const Color(0xFF2C4331),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF385E43), Color(0xFF1B3B2B)],
-                            ),
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.forest_rounded,
-                                  color: Colors.white70,
-                                  size: 44,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  ground.name,
-                                  style: const TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    _buildGroundImage(),
 
                     // Top-Left Badge: Ground Name (Green Badge)
                     Positioned(
@@ -288,6 +241,88 @@ class GroundItemCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// Membangun widget gambar utama menggunakan properti image_url dari GroundModel
+  /// Dilengkapi loading indicator dan fallback aman ke asset lokal
+  Widget _buildGroundImage() {
+    final url = ground.image_url.trim();
+    final bool hasValidNetworkUrl = url.isNotEmpty &&
+        (url.startsWith('http://') || url.startsWith('https://'));
+
+    // Fallback aman: jika image_url bernilai null atau string kosong / bukan link internet
+    if (!hasValidNetworkUrl) {
+      return _buildAssetFallback();
+    }
+
+    // Render gambar via Image.network dengan indikator loading saat gambar dari internet ditarik
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        final expected = progress.expectedTotalBytes;
+        final loaded = progress.cumulativeBytesLoaded;
+        final double? progressVal = (expected != null && expected > 0)
+            ? loaded / expected
+            : null;
+        return Container(
+          color: const Color(0xFF2C4331),
+          child: Center(
+            child: CircularProgressIndicator(
+              value: progressVal,
+              color: AppColors.primary,
+              strokeWidth: 2,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        // Fallback jika koneksi internet terputus atau gambar 404
+        return _buildAssetFallback();
+      },
+    );
+  }
+
+  /// Fallback aman: merender gambar dummy lokal dari assets
+  Widget _buildAssetFallback() {
+    return Image.asset(
+      AppAssets.mapPreview,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF385E43), Color(0xFF1B3B2B)],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.forest_rounded,
+                  color: Colors.white70,
+                  size: 44,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  ground.name,
+                  style: const TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
