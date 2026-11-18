@@ -117,11 +117,16 @@ class _KatalogScreenState extends State<KatalogScreen> {
     final phone = (item['contact_phone'] ?? '').toString().trim();
     final waLink = _buildWaLink(phone, name, 'saya ingin sewa alat camping');
 
+    final rawBannerUrl =
+        (item['banner_url'] ?? item['image_url'] ?? '').toString().trim();
+    final bannerUrl = ApiConfig.resolveImageUrl(rawBannerUrl);
+
     return RentalModel(
       name: name,
       description: description,
       items: rentalItems,
       waLink: waLink,
+      bannerUrl: bannerUrl,
     );
   }
 

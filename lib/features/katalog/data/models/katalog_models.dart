@@ -19,13 +19,21 @@ class RentalModel {
   final String description;
   final List<Map<String, String>> items;
   final String waLink;
+  final String? bannerUrl;
 
   const RentalModel({
     required this.name,
     required this.description,
     required this.items,
     required this.waLink,
+    this.bannerUrl,
   });
+
+  /// Alias getter agar kompatibel dengan banner_url dan image_url dari backend API
+  // ignore: non_constant_identifier_names
+  String get banner_url => bannerUrl ?? '';
+  // ignore: non_constant_identifier_names
+  String get image_url => bannerUrl ?? '';
 }
 
 class PhotographerModel {
@@ -89,6 +97,8 @@ final List<RentalModel> dummyRentals = [
   const RentalModel(
     name: 'Bedengan Camp Rental',
     description: 'Penyedia resmi peralatan berkemah terlengkap siap pakai',
+    bannerUrl:
+        'https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=800&auto=format&fit=crop',
     items: [
       {
         'name': 'Tenda',
